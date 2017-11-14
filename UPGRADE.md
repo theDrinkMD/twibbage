@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-_After `6.0.0` all `MINOR` and `MAJOR` version bumps will have upgrade notes 
+_After `6.0.0` all `MINOR` and `MAJOR` version bumps will have upgrade notes
 posted here._
 
 [2017-09-28] 6.6.x to 6.7.x

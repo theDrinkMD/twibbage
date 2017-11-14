@@ -12,9 +12,15 @@ import urllib2
 import json
 import gameManager
 import questionGenerator
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/twibbage_db'
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+PRODUCTION_DATABASE_URL = os.environ.get("PRODUCTION_DATABASE_URL")
+app.config['SQLALCHEMY_DATABASE_URI'] = PRODUCTION_DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 

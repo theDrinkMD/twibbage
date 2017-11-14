@@ -1,9 +1,17 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from models import Player, Game, Player_Answers, Question
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/twibbage_db'
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+PRODUCTION_DATABASE_URL = os.environ.get("PRODUCTION_DATABASE_URL")
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/twibbage_db'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = PRODUCTION_DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -23,7 +31,7 @@ def addGame(game_id, num_quest, user_id, max_players):
 #Adds a record of a player to a game. And returns the player id.
 def addPlayer(game_id, mdn):
     newPlayer = Player()
-    newPlayer = Player(game_id, mdn,0)
+    newPlayer = Player(game_id, mdn,0,None)
     db.session.add(newPlayer)
     db.session.commit()
     new_player = db.session.query(Player).filter(Player.mdn==mdn).first()

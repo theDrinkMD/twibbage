@@ -1,11 +1,22 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
 from datetime import datetime
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/twibbage_db'
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+PRODUCTION_DATABASE_URL = os.environ.get("PRODUCTION_DATABASE_URL")
+app.config['SQLALCHEMY_DATABASE_URI'] = PRODUCTION_DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 
 class Game(db.Model):
     __tablename__ = "game"
@@ -40,13 +51,15 @@ class Player(db.Model):
     game_id = db.Column(db.String(5))
     mdn = db.Column(db.String(12))
     score = db.Column(db.Integer)
+    player_name = db.Column(db.String(16))
     created_dt = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_dt = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    def __init__(self,game_id=None, mdn=None,score=None):
+    def __init__(self,game_id=None, mdn=None,score=None, player_name=None):
         self.game_id = game_id
         self.mdn = mdn
         self.score = score
+        self.player_name = player_name
 
     def __repr__(self):
         return '%r' % (self.id)
@@ -96,3 +109,6 @@ class Question(db.Model):
 
     def __repr__(self):
         return '%r' % (self.id)
+
+if __name__ == '__main__':
+    manager.run()
