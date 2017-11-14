@@ -1,1 +1,1 @@
-web: gunicorn game:app --logs-
+web: gunicorn game:app --log-file -
