@@ -150,7 +150,7 @@ def twibbage_game():
                     else:
                         #print("Not Yet Answered - My current q seq: {}".format(str(my_game.current_question_sequence_number)))
                         #Check if person faked the right answer like a jerkface
-                        if gameManager.fakeAnswerIsRealAnswer(my_game.question_id, lcase_msg_body):
+                        if gameManager.fakeAnswerIsRealAnswer(my_game.current_question_id, lcase_msg_body):
                             response_string = "Well done hotshot... You selected the correct answer. Please reply with a FAKE answer..."
                             print("{} tried faking the correct answer...".format(from_number))
                         else:
@@ -178,24 +178,34 @@ def twibbage_game():
                         print("Player Already Guessed - My current q seq: {}".format(str(my_game.current_question_sequence_number)))
                         response_string = "\r You already Guessed!"
                     else:
+                        #So this person hasn't submitted a valid guess yet...
                         #0. Lets get my curent player answer
                         my_player_answer = dbManager.getPlayerAnswer(my_game.id, my_game.current_question_sequence_number,my_player.id)
 
-                        #1. Store off guess
-                        dbManager.updatePlayerAnswerGuess(my_player_answer.id, player_guess)
+                        #If no, give the person Whos response was selected, a point
+                        guessed_player_answer = dbManager.getPlayerAnswerByGuessId(my_game.id, my_game.current_question_sequence_number, player_guess[:1])
 
-                        #Is this person's guess the right answer?
-                        if dbManager.checkIfGuessRightAnswer(my_game.current_question_id, player_guess):
-                            dbManager.updatePlayerScore(my_player.id, points_for_correct_guess)
-                            messageSender.sendMessage(from_number, "\r Yay you got it correct! +{} points!".format(str(points_for_correct_guess)))
+                        #is this person being an ass?
+                        if lcase_msg_body == my_player_answer.fake_answer_guess_id:
+                            response_string = "Come on now, you can't guess your own answer. Please sumbit another answer."
+                        #is this an invalid answer?
+                        elif lcase_msg_body.isdigit() == False:
+                            response_string = "You just need to enter the NUMBER of the guess you wish to make. Try again. Like 1, or maybe 2!"
+
+                        #Is this not even a valid response number?
+                        elif guessed_player_answer is None:
+                            response_string = "You selected an invalid answer. Sry Bro"
                         else:
-                            #If no, give the person Whos response was selected, a point
-                            guessed_player_answer = dbManager.getPlayerAnswerByGuessId(my_game.id, my_game.current_question_sequence_number, player_guess[:1])
 
-                            #if we cant find the guessed player answer, they did something wrong
-                            if guessed_player_answer is None:
-                                response_string = "You selected an invalid answer. Sry Bro"
+                            #1. Finally... we can Store off guess
+                            dbManager.updatePlayerAnswerGuess(my_player_answer.id, player_guess)
+
+                            #Is this person's guess the right answer?
+                            if dbManager.checkIfGuessRightAnswer(my_game.current_question_id, player_guess):
+                                dbManager.updatePlayerScore(my_player.id, points_for_correct_guess)
+                                messageSender.sendMessage(from_number, "\r Yay you got it correct! +{} points!".format(str(points_for_correct_guess)))
                             else:
+
                                 dbManager.updatePlayerScore(guessed_player_answer.player_id, points_for_fakeout)
                                 #message guesser saying "WRONG"
                                 messageSender.sendMessage(from_number, "\r WRONG! You guessed someone else's fake answer!")
@@ -204,21 +214,21 @@ def twibbage_game():
                                 messageSender.sendMessage(guessed_player_answer_mdn, "HAHAHAHA. {} guessed your answer! +{} for fakeout!".format(from_number,points_for_fakeout))
 
 
-                        #now lets check whether i was the last to answer, then send scoreboard, and shift Gamestate
-                        num_guesses = dbManager.getTotalGuesses(my_game.id,my_game.current_question_sequence_number)
-                        total_players = dbManager.getPlayerCount(my_game_token)
+                            #now lets check whether i was the last to answer, then send scoreboard, and shift Gamestate
+                            num_guesses = dbManager.getTotalGuesses(my_game.id,my_game.current_question_sequence_number)
+                            total_players = dbManager.getPlayerCount(my_game_token)
 
-                        if num_guesses == total_players:
-                            #its time to change game state and send out results of the round
-                            gameManager.sendResults(my_game.id)
-                            game_continuing = gameManager.nextRound(my_game.id)
-                            if not game_continuing:
-                                response_string = "GAME OVER"
+                            if num_guesses == total_players:
+                                #its time to change game state and send out results of the round
+                                gameManager.sendResults(my_game.id)
+                                game_continuing = gameManager.nextRound(my_game.id)
+                                if not game_continuing:
+                                    response_string = "GAME OVER"
+                                else:
+                                    response_string = ""
                             else:
-                                response_string = ""
-                        else:
-                            #do nothing really - we're still waiting on other people
-                            response_string = "Waiting for others to guess..."
+                                #do nothing really - we're still waiting on other people
+                                response_string = "Waiting for others to guess..."
     else:
         response_string = ""
         return("<h1>Welcome to Twibbage</h1><br/><p>To play, text newgame q p to the number, whwere q is the number of quesitons, and p is the number of players you want in a game.</p>")

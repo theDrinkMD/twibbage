@@ -284,7 +284,7 @@ def checkIfPlayerAlreadyAnswered(g_id,seq,plr_id):
 #actually a string in the db type
 def checkIfPlayerAlreadyGuessed(g_id,seq,plr_id):
     player_answer = db.session.query(Player_Answers).filter(Player_Answers.game_id==str(g_id),Player_Answers.question_sequence_number==seq,Player_Answers.player_id==plr_id).first()
-    if player_answer.guess is not None:
+    if player_answer is not None:
         return True
     else:
         return False

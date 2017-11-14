@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "04db6b4548defadbb6d6668ea836eb3b0d499e8168f211a3c3cc39e512cc302b"
+            "sha256": "5c23b8472a795dc77f639f7a42346774a38c41a2d6da1e678dae6392433629cf"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -18,7 +18,12 @@
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.6"
+            "install_requires": [
+                "Flask>=0.2",
+                "SQLAlchemy>=0.6",
+                "BrokenPackage>=0.7,<=1.0"
+            ],
+            "python_version": "2.7.14"
         },
         "sources": [
             {
@@ -42,6 +47,13 @@
                 "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"
             ],
             "version": "==3.0.4"
+        },
+        "gunicorn": {
+            "hashes": [
+                "sha256:75af03c99389535f218cc596c7de74df4763803f7b63eb09d77e92b3956b36c6",
+                "sha256:eee1169f0ca667be05db3351a0960765620dad53f53434262ff8901b68a1b622"
+            ],
+            "version": "==19.7.1"
         },
         "idna": {
             "hashes": [

@@ -8,14 +8,18 @@ name = "pypi"
 [dev-packages]
 
 
+
 [packages]
+
 requests = ">=2.0.0"
-SocksiPy-branch = "*"
-PyJWT = "==1.4.2"
+socksipy-branch = "*"
+pyjwt = "==1.4.2"
 twine = "*"
+gunicorn = "*"
 
 
 [requires]
+
 install_requires=[
     'Flask>=0.2',
     'SQLAlchemy>=0.6',

@@ -1,8 +1,6 @@
 import os
 from twilio.rest import Client
 
-
-
 def sendMessage(to, m):
     #send out questions
     ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
