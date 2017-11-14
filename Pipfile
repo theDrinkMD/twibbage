@@ -1,5 +1,4 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
@@ -10,7 +9,6 @@ name = "pypi"
 
 
 [packages]
-
 requests = ">=2.0.0"
 socksipy-branch = "*"
 pyjwt = "==1.4.2"
@@ -19,10 +17,10 @@ gunicorn = "*"
 
 
 [requires]
-
 install_requires=[
-    'Flask>=0.2',
-    'SQLAlchemy>=0.6',
+    'Flask>=0.12.2',
+    'SQLAlchemy>=2.3.2',
     'BrokenPackage>=0.7,<=1.0'
 ]
+
 python_version = "2.7.14"

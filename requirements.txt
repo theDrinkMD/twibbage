@@ -4,6 +4,6 @@ socksipy-branch
 PyJWT==1.4.2
 twine
 gunicorn==19.7.1
-psycopg2=<2.7.3.2
+psycopg2>=2.7.3
 flask==0.12.2
 Flask-SQLAlchemy==2.3.2
