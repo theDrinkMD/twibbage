@@ -4,7 +4,6 @@ socksipy-branch
 PyJWT==1.4.2
 twine
 gunicorn==19.7.1
-psycopg2 == "*"
-whitenoise == "*"
-Flask==0.9`
-Flask-SQLAlchemy==0.16
+psycopg2=<2.7.3.2
+flask==0.12.2
+Flask-SQLAlchemy==2.3.2
