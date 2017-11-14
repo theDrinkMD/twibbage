@@ -15,7 +15,6 @@ Jinja2==2.9.6
 macholib==1.5.1
 MarkupSafe==1.0
 mccabe==0.6.1
-numpy==1.8.0rc1
 pathlib==1.0.1
 pew==1.1.0
 pipenv==8.3.2
