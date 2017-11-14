@@ -31,7 +31,7 @@ requests==2.18.4
 shutilwhich==1.1.0
 SQLAlchemy==1.1.14
 twilio==6.7.1
-urllib3==1.22
+urllib2==2.7
 virtualenv==15.1.0
 virtualenv-clone==0.2.6
 web.py==0.40.dev0

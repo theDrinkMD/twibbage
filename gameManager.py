@@ -2,7 +2,6 @@ import gameIdGenerator
 import dbManager
 import models
 import logging
-import urllib2
 import json
 import questionGenerator
 import messageSender
