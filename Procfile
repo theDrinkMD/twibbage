@@ -1,1 +1,1 @@
-web: python game.py
+web: python game.py --log-file -
