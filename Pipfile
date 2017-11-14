@@ -4,17 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 
-[dev-packages]
-
-
-
 [packages]
 requests = ">=2.0.0"
 socksipy-branch = "*"
 pyjwt = "==1.4.2"
 twine = "*"
 gunicorn = "*"
-urllib2 ==2.7
+
 
 
 [requires]
@@ -24,4 +20,4 @@ install_requires=[
     'BrokenPackage>=0.7,<=1.0'
 ]
 
-python_version = "2.7.14"
+python_version = "2.7.10"
