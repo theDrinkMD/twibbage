@@ -10,7 +10,7 @@ socksipy-branch = "*"
 pyjwt = "==1.4.2"
 twine = "*"
 gunicorn = "*"
-flask = "==0.12.2"
+Flask = "==0.12.2"
 flask_sqlalchemy = "==2.3.2"
 
 [requires]
