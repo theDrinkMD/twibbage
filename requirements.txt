@@ -29,7 +29,6 @@ python-dotenv==0.7.1
 pytz==2013.7
 requests==2.18.4
 shutilwhich==1.1.0
-six==1.4.1
 SQLAlchemy==1.1.14
 twilio==6.7.1
 urllib3==1.22
