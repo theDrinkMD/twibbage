@@ -1,1 +1,1 @@
-web: python game.py --log-file -
+web: gunicorn app:game
