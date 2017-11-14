@@ -14,7 +14,7 @@ socksipy-branch = "*"
 pyjwt = "==1.4.2"
 twine = "*"
 gunicorn = "*"
-urllib2 = "*"
+urllib2 ==2.7
 
 
 [requires]
