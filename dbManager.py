@@ -29,9 +29,9 @@ def addGame(game_id, num_quest, user_id, max_players):
     return new_game_id
 
 #Adds a record of a player to a game. And returns the player id.
-def addPlayer(game_id, mdn):
+def addPlayer(game_id, mdn, player_alias):
     newPlayer = Player()
-    newPlayer = Player(game_id, mdn,0,None)
+    newPlayer = Player(game_id, mdn,0,player_alias)
     db.session.add(newPlayer)
     db.session.commit()
     new_player = db.session.query(Player).filter(Player.mdn==mdn).first()
@@ -82,6 +82,16 @@ def updatePlayerGameId(mdn_to_update, new_game_id):
 
         plr2 = Player.query.filter(Player.mdn==mdn_to_update).first()
 
+        return plr.id
+    else:
+        return 0
+
+def updatePlayerAlias(mdn_to_update, player_alias):
+    plr = db.session.query(Player).filter(Player.mdn==mdn_to_update).first()
+    if plr is not None:
+        plr.player_name = player_alias
+        print("Player's new name is: {}".format(player_alias))
+        db.session.commit()
         return plr.id
     else:
         return 0
@@ -234,6 +244,10 @@ def getPlayerMdnById(p_id):
     p = db.session.query(Player).filter(Player.id==p_id).first()
     return p.mdn
 
+def getPlayerById(p_id):
+    p = db.session.query(Player).filter(Player.id==p_id).first()
+    return p
+
 def getActiveGameByPlayerId(plr_id):
     g_host = db.session.query(Game).filter(Game.creator_user_id==plr_id, Game.game_state!='complete').first()
     return g_host.id
@@ -293,7 +307,10 @@ def checkIfPlayerAlreadyAnswered(g_id,seq,plr_id):
 def checkIfPlayerAlreadyGuessed(g_id,seq,plr_id):
     player_answer = db.session.query(Player_Answers).filter(Player_Answers.game_id==str(g_id),Player_Answers.question_sequence_number==seq,Player_Answers.player_id==plr_id).first()
     if player_answer is not None:
-        return True
+        if player_answer.guess is not None:
+            return True
+        else:
+            return False
     else:
         return False
 
@@ -323,3 +340,7 @@ def getPlayerAnswerByGuessId(g_id,seq,guess):
 def getTotalGuesses(g_id,seq):
     count = db.session.query(Player_Answers).filter(Player_Answers.game_id==str(g_id),Player_Answers.question_sequence_number==seq, Player_Answers.guess!=None).count()
     return count
+
+def getGameQuestionSequenceNumber(g_id):
+    g = db.session.query(Game).filter(Game.id==str(g_id)).first()
+    return g.current_question_sequence_number

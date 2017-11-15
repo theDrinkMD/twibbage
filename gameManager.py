@@ -20,7 +20,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = PRODUCTION_DATABASE_URL
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/twibbage_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-def createGame(mdn, number_of_questions, max_players):
+def createGame(mdn, number_of_questions, max_players, player_alias):
     # 1. Call subroutine to create a random Game ID
     #assume the game already exists
     # 2. Check to see if that game id exists, if so do it again,
@@ -34,7 +34,7 @@ def createGame(mdn, number_of_questions, max_players):
     # 3. We first must add the player, so we have the player ID who created the game
     #3.1 Lets first check to see if the player already has a record.
     if dbManager.getPlayerId(mdn) is None:
-        player_id = dbManager.addPlayer(game_token, mdn)
+        player_id = dbManager.addPlayer(game_token, mdn, player_alias)
     else:
         #3.2 Player already exists, so we need to update his game id
         player_id = dbManager.updatePlayerGameId(mdn, game_token)
@@ -72,7 +72,7 @@ def endGameByPlayer(player_id_to_end):
     endGame(game_to_end)
     return game_to_end
 
-def handleGameJoin(msg,usr_status,from_number):
+def handleGameJoin(msg,usr_status,from_number,player_alias):
     active_game = dbManager.getGameByToken(msg[:5])
     #get a game object back
     if active_game is None:
@@ -81,10 +81,12 @@ def handleGameJoin(msg,usr_status,from_number):
         if (active_game.game_state == "lobby"): #ADD CODE TO CHecK NUM Players
             if usr_status == 0:
                 #need to add player to db with active game
-                player_id = dbManager.addPlayer(active_game.game_id, from_number)
+                player_id = dbManager.addPlayer(active_game.game_id, from_number,player_alias)
                 return "We have added you to the game! Thanks for joining! Text Rules for... rules."
             else:
                 player_id = dbManager.updatePlayerGameId(from_number,active_game.game_id)
+                if player_alias != from_number:
+                    dbManager.updatePlayerAlias(from_number, player_alias)
                 return "We have added you to the game. Thanks for coming back! Text Rules for... rules."
         else:
             return "Game is not joinable."
@@ -98,9 +100,10 @@ def startGame(g_id):
     instruction = "... \r Supply a fake answer for others to guess."
     #get player
     players = dbManager.getPlayersByGameId(g_id)
+    current_q_num = 1 + dbManager.getGameQuestionSequenceNumber(g_id)
 
     for player in players:
-        messageSender.sendMessage(player.mdn, question_1 + "{}".format(instruction))
+        messageSender.sendMessage(player.mdn, "Question {}: \r".format(current_q_num) + question_1 + "{}".format(instruction))
         print("********** {}. Sent to {}".format(question_1, player.mdn))
 
 def moveToGuessTime(g_id):
@@ -160,7 +163,8 @@ def sendResults(g_id):
     str_response = "\r And the scores after the last round are: \r"
     #Build response.
     for player in players:
-        str_response = str_response + "{} - {}\r".format(player.mdn, str(player.score))
+        str_response = str_response + "{} - {}\r".format(player.player_name, str(player.score))
+        #str_response = str_response + "{} - {}\r".format(player.mdn, str(player.score))
 
     #Send Response
     for play in players:
@@ -172,6 +176,8 @@ def moveToFakeAnswer(g_id):
 
     #Game Object should already be updated
     game_q_id = dbManager.getGameQuestionIdByGameId(g_id)
+    current_q_num = 1 + dbManager.getGameQuestionSequenceNumber(g_id)
+
     print("moving to fake answers - the next question id is {}".format(str(game_q_id)))
     #get question
     next_question = dbManager.getQuestionById(game_q_id)
@@ -183,7 +189,7 @@ def moveToFakeAnswer(g_id):
     players = dbManager.getPlayersByGameIdScoreDesc(g_id)
 
     for player in players:
-        messageSender.sendMessage(player.mdn, next_question + "{}".format(instruction))
+        messageSender.sendMessage(player.mdn, "Question {}: \r".format(current_q_num) + next_question + "{}".format(instruction))
         print("********** {}. Sent to {}".format(next_question, player.mdn))
 
 

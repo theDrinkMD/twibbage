@@ -14,9 +14,9 @@ PRODUCTION_DATABASE_URL = os.environ.get("PRODUCTION_DATABASE_URL")
 app.config['SQLALCHEMY_DATABASE_URI'] = PRODUCTION_DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-manager = Manager(app)
-manager.add_command('db', MigrateCommand)
+#migrate = Migrate(app, db)
+#manager = Manager(app)
+#manager.add_command('db', MigrateCommand)
 
 class Game(db.Model):
     __tablename__ = "game"
@@ -110,5 +110,5 @@ class Question(db.Model):
     def __repr__(self):
         return '%r' % (self.id)
 
-if __name__ == '__main__':
-    manager.run()
+#if __name__ == '__main__':
+#    manager.run()

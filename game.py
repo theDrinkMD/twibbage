@@ -47,6 +47,7 @@ def twibbage_game():
         response_string = ""
         points_for_correct_guess = 200
         points_for_fakeout = 100
+        someone_just_jerked_around = False
 
         resp = MessagingResponse()
         #resp.message("something is wrong")
@@ -58,26 +59,34 @@ def twibbage_game():
             else:
                 #lets parse the message and get the max_players and max questions
                 game_settings = msg_body.split()
+                player_alias = str(from_number)
 
                 try:
-                    max_questions = int(game_settings[1])
+                    max_players = int(game_settings[1])
+                    print("{} requested a max number of players of {}".format(from_number, max_players))
+                except IndexError:
+                    max_players = 3
+                    print("{} Did not request a maximum number of questions, defaulting to {}".format(from_number, max_players))
+
+                try:
+                    max_questions = int(game_settings[2])
                     print("{} requested a max number of questions of {}".format(from_number, max_questions))
                 except IndexError:
                     max_questions = 3
                     print("{} Did not request a maximum number of questions, defaulting to {}".format(from_number, max_questions))
 
                 try:
-                    max_players = int(game_settings[2])
-                    print("{} requested a max number of players of {}".format(from_number, max_players))
+                    player_alias = game_settings[3]
+                    print("{} requested a new name of {}".format(from_number, player_alias))
                 except IndexError:
-                    max_players = 3
-                    print("{} Did not request a maximum number of questions, defaulting to {}".format(from_number, max_players))
+                    player_alias = str(from_number)
+                    print("{} Did not request an alias... defaulting to {}".format(from_number, from_number))
 
                 #max_questions = msg_body[9:9]
                 #max_players = msg_body[11:]
 
                 #createGame(from_number, num_questions)
-                new_game = gameManager.createGame(from_number, max_questions, max_players)
+                new_game = gameManager.createGame(from_number, max_questions, max_players, player_alias)
 
                 # creates a new game object, returns
                 #gameId = "A1B2"
@@ -114,7 +123,17 @@ def twibbage_game():
             #lets see what they've written
             if usr_status == 0 or usr_status ==1:
                 #we assume the person is joining a game, so lets get the first 5 bytes
-                response_string = gameManager.handleGameJoin(msg_body[:5].upper(),usr_status,from_number)
+                game_settings = lcase_msg_body.split()
+
+                try:
+                    player_alias = game_settings[1]
+                    print("{} requested a max number of players of {}".format(from_number, max_players))
+                except IndexError:
+                    #if we're here that means they only entered 1 thing, the game ID
+                    player_alias = from_number
+                    print("{} Did not request a maximum number of questions, defaulting to {}".format(from_number, max_players))
+
+                response_string = gameManager.handleGameJoin(lcase_msg_body[:5].upper(),usr_status,from_number,player_alias)
                 #gameManager.sendRules(from_number)
                 #ITS AT THIS POINT WELL WANT TO CHECK TO SEE HOW MANY PLAYERS ARE NOW IN ONCE IVE Joined
                 my_game = dbManager.getActiveGameByPlayerNumber(from_number)
@@ -161,8 +180,8 @@ def twibbage_game():
                             print("")
                             # 1. Store off fake answer
                             dbManager.addPlayerAnswer(my_game.id, my_game.current_question_sequence_number,my_player.id,lcase_msg_body)
-                            response_string = "Thanks for your fake answer! Waiting for other Players to enter theirs"
-
+                            response_string = ""
+                            messageSender.sendMessage(from_number, "Thanks for your fake answer! Waiting for other Players to enter theirs...")
                             #2. Check if I'm the last to answer
                             answer_count = dbManager.checkNumberPlayerAnswers(my_game.id,my_game.current_question_sequence_number)
                             player_count = dbManager.getPlayerCount(my_game_token)
@@ -175,7 +194,7 @@ def twibbage_game():
 
                 elif my_game.game_state == "guesstime" :
                     #Get a person's Guess and store a person's guess
-                    player_guess = msg_body
+                    player_guess = lcase_msg_body
 
                     #check if the person already answered
                     if dbManager.checkIfPlayerAlreadyGuessed(my_game.id, my_game.current_question_sequence_number,my_player.id):
@@ -195,10 +214,6 @@ def twibbage_game():
                         #is this an invalid answer?
                         elif lcase_msg_body.isdigit() == False:
                             response_string = "You just need to enter the NUMBER of the guess you wish to make. Try again. Like 1, or maybe 2!"
-
-                        #Is this not even a valid response number?
-                        elif guessed_player_answer is None:
-                            response_string = "You selected an invalid answer. Sry Bro"
                         else:
 
                             #1. Finally... we can Store off guess
@@ -208,31 +223,39 @@ def twibbage_game():
                             if dbManager.checkIfGuessRightAnswer(my_game.current_question_id, player_guess):
                                 dbManager.updatePlayerScore(my_player.id, points_for_correct_guess)
                                 messageSender.sendMessage(from_number, "\r Yay you got it correct! +{} points!".format(str(points_for_correct_guess)))
+                            #Is this not even a valid response number?
+                            elif guessed_player_answer is None:
+                                #well shit, we already allowed him to save off his shit. we should undo thats
+                                dbManager.updatePlayerAnswerGuess(my_player_answer.id, None)
+                                someone_just_jerked_around = True
                             else:
-
                                 dbManager.updatePlayerScore(guessed_player_answer.player_id, points_for_fakeout)
                                 #message guesser saying "WRONG"
                                 messageSender.sendMessage(from_number, "\r WRONG! You guessed someone else's fake answer!")
                                 guessed_player_answer_mdn = dbManager.getPlayerMdnById(guessed_player_answer.player_id)
+                                guessed_player_alias = dbManager.getPlayerById(guessed_player_answer.player_id)
                                 #message faker saying someone guessed your shit! +x Points
-                                messageSender.sendMessage(guessed_player_answer_mdn, "HAHAHAHA. {} guessed your answer! +{} for fakeout!".format(from_number,points_for_fakeout))
+                                #messageSender.sendMessage(guessed_player_answer_mdn, "HAHAHAHA. {} guessed your answer! +{} for fakeout!".format(from_number,points_for_fakeout))
+                                messageSender.sendMessage(guessed_player_answer_mdn, "HAHAHAHA. {} guessed your answer! +{} for fakeout!".format(guessed_player_alias.player_name,points_for_fakeout))
 
-
-                            #now lets check whether i was the last to answer, then send scoreboard, and shift Gamestate
-                            num_guesses = dbManager.getTotalGuesses(my_game.id,my_game.current_question_sequence_number)
-                            total_players = dbManager.getPlayerCount(my_game_token)
-
-                            if num_guesses == total_players:
-                                #its time to change game state and send out results of the round
-                                gameManager.sendResults(my_game.id)
-                                game_continuing = gameManager.nextRound(my_game.id)
-                                if not game_continuing:
-                                    response_string = "GAME OVER"
-                                else:
-                                    response_string = ""
+                            if someone_just_jerked_around:
+                                response_string = "You selected an invalid answer. Sry Bro"
                             else:
-                                #do nothing really - we're still waiting on other people
-                                response_string = "Waiting for others to guess..."
+                                #now lets check whether i was the last to answer, then send scoreboard, and shift Gamestate
+                                num_guesses = dbManager.getTotalGuesses(my_game.id,my_game.current_question_sequence_number)
+                                total_players = dbManager.getPlayerCount(my_game_token)
+
+                                if num_guesses == total_players:
+                                    #its time to change game state and send out results of the round
+                                    gameManager.sendResults(my_game.id)
+                                    game_continuing = gameManager.nextRound(my_game.id)
+                                    if not game_continuing:
+                                        response_string = "GAME OVER"
+                                    else:
+                                        response_string = ""
+                                else:
+                                    #do nothing really - we're still waiting on other people
+                                    response_string = "Waiting for others to guess..."
     else:
         response_string = ""
         return("<h1>Welcome to Twibbage</h1><br/><p>To play, text newgame q p to the number, whwere q is the number of quesitons, and p is the number of players you want in a game.</p>")
